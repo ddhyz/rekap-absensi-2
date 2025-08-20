@@ -1,5 +1,5 @@
 # ===============================
-# app.py (Word Template + Hari di Tanggal)
+# app.py (Index di dalam folder templates)
 # ===============================
 from flask import Flask, render_template, request, send_file
 import pandas as pd
@@ -170,7 +170,6 @@ def index():
 
             df_absen_id = df_tidak_hadir[df_tidak_hadir["ID"]==row['ID']]
             if not df_absen_id.empty:
-                # Ambil semua tanggal tidak hadir jadi string, contoh: "19-08-2025, 20-08-2025, 21-08-2025"
                 semua_tgl = df_absen_id["Tanggal Tidak Hadir"].apply(lambda x: x.strftime("%d-%m-%Y")).tolist()
                 tanggal_terakhir = ", ".join(semua_tgl)
                 jumlah_hari = len(semua_tgl)
@@ -178,7 +177,6 @@ def index():
                 tanggal_terakhir = date.today().strftime("%d-%m-%Y")
                 jumlah_hari = row['Jumlah Tidak Hadir']
 
-            # Tanggal surat dengan nama hari
             tanggal_surat = date.today()
             nama_hari = hari_list[tanggal_surat.weekday()]
             context = {
