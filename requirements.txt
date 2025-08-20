@@ -6,4 +6,7 @@ openpyxl
 xlrd
 xlsxwriter
 python-docx
+docxtpl
 reportlab
+werkzeug
+
