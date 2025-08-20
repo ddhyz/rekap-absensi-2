@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Absensi PT. QUANTUM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            --secondary-gradient: linear-gradient(135deg, #6c757d 0%, #5c636a 100%);
+            --success-gradient: linear-gradient(135deg, #198754 0%, #157347 100%);
+            --warning-gradient: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+        }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%); min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align:center; }
+        .navbar { box-shadow: 0 2px 15px rgba(0,0,0,0.1); background: var(--primary-gradient) !important; }
+        .navbar-brand { font-weight: 700; font-size: 1.5rem; letter-spacing: 0.5px; }
+        .card { margin-top: 30px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.12); border: none; transition: transform .3s ease, box-shadow .3s ease; text-align:center; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .card-header { background: var(--primary-gradient); color: white; border-radius: 15px 15px 0 0 !important; font-weight: 600; padding: 15px 20px; }
+        .card-title { color: #2c3e50; font-weight: 700; margin-bottom: 25px; position: relative; }
+        .card-title:after { content: ''; display:block; width:60px; height:3px; background: var(--primary-gradient); margin:10px auto 0; border-radius:3px; }
+        table { border-collapse: separate; border-spacing: 0; width:90%; margin:0 auto; border-radius:10px; overflow:hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align:center; }
+        table thead { background: var(--primary-gradient); color:white; }
+        table th { font-weight:700; padding:15px 10px; text-transform: uppercase; font-size:.9rem; letter-spacing:.5px; text-align:center; }
+        table td { padding:12px 10px; vertical-align: middle; border-bottom:1px solid #e9ecef; text-align:center; }
+        table tr:nth-child(even) { background-color: rgba(13,110,253,.03); }
+        table tr:hover { background-color: rgba(13,110,253,.08); transform: scale(1.01); transition: all .2s ease; }
+        .nav-tabs { border-bottom:2px solid #e9ecef; margin-bottom:20px; justify-content:center; }
+        .nav-tabs .nav-link { border:none; border-radius:10px 10px 0 0; padding:12px 25px; font-weight:600; color:#6c757d; margin-right:5px; transition: all .3s ease; }
+        .nav-tabs .nav-link:hover { color:#0d6efd; background-color: rgba(13,110,253,.1); }
+        .nav-tabs .nav-link.active { background: var(--primary-gradient); color:white; border-radius:10px 10px 0 0; box-shadow: 0 4px 10px rgba(13,110,253,.3); }
+        .btn-primary { background: var(--primary-gradient); border:none; border-radius:10px; padding:10px 25px; font-weight:600; box-shadow:0 4px 15px rgba(13,110,253,.3); transition: all .3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(13,110,253,.4); }
+        .btn-success { background: var(--success-gradient); border:none; border-radius:12px; padding:12px 30px; font-weight:600; font-size:1.1rem; box-shadow:0 4px 15px rgba(25,135,84,.3); transition: all .3s ease; }
+        .btn-success:hover { transform: translateY(-3px); box-shadow:0 6px 20px rgba(25,135,84,.4); }
+        .btn-download { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); border:none; border-radius:12px; padding:12px 30px; font-weight:600; font-size:1.1rem; box-shadow:0 4px 15px rgba(111,66,193,.3); transition: all .3s ease; margin:0 10px; }
+        .btn-download:hover { transform: translateY(-3px); box-shadow:0 6px 20px rgba(111,66,193,.4); }
+        .btn-warning-solid { background: #fd7e14; color:white; border:none; border-radius:12px; padding:12px 30px; font-weight:600; font-size:1.1rem; margin:0 10px; }
+        .form-control { border-radius:10px; padding:12px 15px; border:2px solid #e9ecef; transition: all .3s ease; text-align:center; }
+        .form-control:focus { border-color:#0d6efd; box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); }
+        .upload-icon { font-size:3rem; color:#0d6efd; margin-bottom:15px; }
+        .stats-card { text-align:center; padding:20px; border-radius:12px; color:white; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+        .stats-card i { font-size:2.5rem; margin-bottom:15px; }
+        .stats-card h3 { font-weight:700; margin:10px 0; }
+        .stats-card p { opacity:.9; margin:0; }
+        .bg-telat { background: var(--warning-gradient); }
+        .bg-tidak-hadir { background: var(--secondary-gradient); }
+        .bg-jumlah { background: var(--success-gradient); }
+        .footer-info { text-align:center; margin-top:30px; color:#6c757d; font-size:.9rem; }
+        @media (max-width: 768px) {
+            .nav-tabs .nav-link { padding:10px 15px; font-size:.9rem; }
+            table { font-size:.85rem; }
+            .btn { padding:8px 15px; font-size:.9rem; }
+            .btn-download { margin:5px; }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-calendar-check me-2"></i>Rekap Absensi PT. QUANTUM
+        </a>
+    </div>
+</nav>
+<div class="container">
+    {% if df_telat %}
+    <div class="row mt-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="stats-card bg-telat">
+                <i class="fas fa-clock"></i>
+                <h3>{{ jumlah_karyawan_telat }}</h3>
+                <p>Karyawan Telat</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card bg-tidak-hadir">
+                <i class="fas fa-user-times"></i>
+                <h3>{{ jumlah_karyawan_tidak_hadir }}</h3>
+                <p>Karyawan Tidak Hadir</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card bg-jumlah">
+                <i class="fas fa-users"></i>
+                <h3>{{ jumlah_total_karyawan }}</h3>
+                <p>Total Karyawan</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-file-upload me-2"></i>Upload File Excel Absensi
+        </div>
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <div class="upload-icon"><i class="fas fa-file-excel"></i></div>
+                <h4 class="card-title">Upload File Excel Absensi</h4>
+                <p class="text-muted">Silakan pilih file Excel yang berisi data absensi karyawan</p>
+                {% if error_message %}
+                <div class="alert alert-danger" role="alert">{{ error_message }}</div>
+                {% endif %}
+            </div>
+            <form method="POST" enctype="multipart/form-data" class="d-flex gap-3 justify-content-center align-items-center flex-wrap">
+                <div class="w-75">
+                    <input type="file" name="file_excel" class="form-control" required accept=".xlsx,.xls">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-cogs me-2"></i>Proses Data
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if df_telat %}
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-table me-2"></i>Hasil Rekap Absensi
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs justify-content-center" id="tabMenu" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="telat-tab" data-bs-toggle="tab" data-bs-target="#telat" type="button" role="tab">
+                        <i class="fas fa-clock me-2"></i>Telat
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tidak-hadir-tab" data-bs-toggle="tab" data-bs-target="#tidak-hadir" type="button" role="tab">
+                        <i class="fas fa-user-times me-2"></i>Tidak Hadir
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="jumlah-absen-tab" data-bs-toggle="tab" data-bs-target="#jumlah-absen" type="button" role="tab">
+                        <i class="fas fa-list-ol me-2"></i>Jumlah Absen
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tidak-hadir-lebih3-tab" data-bs-toggle="tab" data-bs-target="#tidak-hadir-lebih3" type="button" role="tab">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Tidak Hadir > 3 Hari
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content mt-4">
+                <div class="tab-pane fade show active table-responsive" id="telat" role="tabpanel">
+                    {{ df_telat | safe }}
+                </div>
+                <div class="tab-pane fade table-responsive" id="tidak-hadir" role="tabpanel">
+                    {{ df_tidak_hadir | safe }}
+                </div>
+                <div class="tab-pane fade table-responsive" id="jumlah-absen" role="tabpanel">
+                    {{ df_jumlah_absen | safe }}
+                </div>
+                <div class="tab-pane fade table-responsive" id="tidak-hadir-lebih3" role="tabpanel">
+                    {% if panggilan_files and panggilan_files|length > 0 %}
+                    <table class="table table-striped text-center">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama</th>
+                                <th>Jumlah Tidak Hadir</th>
+                                <th>Surat Panggilan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in panggilan_files %}
+                            <tr>
+                                <td>{{ row.ID }}</td>
+                                <td>{{ row.Nama }}</td>
+                                <td>{{ row['Jumlah Tidak Hadir'] }}</td>
+                                <td>
+                                    <a href="/download/{{ row['Surat Panggilan'] }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-file-word"></i> Download
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <p class='text-center'>Tidak ada karyawan dengan ketidakhadiran > 3 hari</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <div class="d-flex justify-content-center flex-wrap">
+            <a href="/download/{{ download_file }}" class="btn btn-success btn-lg mb-2 mb-md-0">
+                <i class="fas fa-download me-2"></i>Download File Asli
+            </a>
+            {% if hasil_rekap_filename %}
+            <a href="/download/{{ hasil_rekap_filename }}" class="btn btn-download btn-lg">
+                <i class="fas fa-file-excel me-2"></i>Download Hasil Rekap (Excel)
+            </a>
+            {% endif %}
+            {% if surat_peringatan_filename %}
+            <a href="/download/{{ surat_peringatan_filename }}" class="btn btn-warning-solid btn-lg">
+                <i class="fas fa-file-word me-2"></i>Download Surat Peringatan
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer-info">
+        <p>© 2025 PT. QUANTUM - Sistem Rekap Absensi Karyawan</p>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabTrigger = document.querySelector(`[data-bs-target="${hash}"]`);
+            if (tabTrigger) {
+                const tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+        const tabTriggers = document.querySelectorAll('[data-bs-toggle="tab"]');
+        tabTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('data-bs-target');
+                const tab = new bootstrap.Tab(this);
+                tab.show();
+                const content = document.querySelector(target);
+                if (content) {
+                    content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
