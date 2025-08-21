@@ -1,5 +1,5 @@
 # ===============================
-# app.py (Index di dalam folder templates) - versi sheet 1 & 2
+# app.py (Index + Highlight di Web & Excel)
 # ===============================
 from flask import Flask, render_template, request, send_file
 import pandas as pd
@@ -37,6 +37,16 @@ def sort_nicely(l):
         return [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
+# --- Daftar ID bebas hadir (highlight hijau) ---
+id_bebas = ["1000"]   # nanti bisa ditambah sesuai kebutuhan
+
+# --- Fungsi styling untuk highlight hijau ---
+def highlight_bebas(row):
+    if row["ID"] in id_bebas:
+        return ['background-color: lightgreen'] * len(row)
+    else:
+        return [''] * len(row)
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     df_telat_html = df_tidak_hadir_html = df_jumlah_absen_html = None
@@ -63,20 +73,19 @@ def index():
         file.save(file_path)
         download_file = uploaded_filename
 
-        # === PROSES EXCEL: baca sheet 1 & 2 ===
-        all_sheets = pd.read_excel(file_path, sheet_name=None)  # dict {nama_sheet: DataFrame}
+        # === PROSES EXCEL: baca semua sheet ===
+        all_sheets = pd.read_excel(file_path, sheet_name=None)
         df_list = []
         for sheet_name, df_sheet in all_sheets.items():
-            # Ambil kolom sesuai format
             max_cols = len(df_sheet.columns)
             column_mapping = {}
-            column_names = ['Perusahaan', 'Nama', 'ID', 'Tgl/Waktu', 'Mesin_ID', 'Kolom6', 'Status', 'Kolom8']
+            column_names = ['Perusahaan', 'Nama', 'ID', 'Tgl/Waktu',
+                            'Mesin_ID', 'Kolom6', 'Status', 'Kolom8']
             for i in range(min(max_cols, len(column_names))):
                 column_mapping[column_names[i]] = df_sheet.iloc[:, i]
             df_fix_sheet = pd.DataFrame(column_mapping)
             df_list.append(df_fix_sheet)
 
-        # Gabung semua sheet menjadi satu DataFrame
         df_fix = pd.concat(df_list, ignore_index=True)
 
         # ID unik
@@ -96,14 +105,15 @@ def index():
 
         # Telat pagi
         jam_telat = datetime.strptime("07:50:00", "%H:%M:%S").time()
-        df_pagi = df_fix[(df_fix["Tgl/Waktu"].dt.hour >=5) & (df_fix["Tgl/Waktu"].dt.hour <=9)]
+        df_pagi = df_fix[(df_fix["Tgl/Waktu"].dt.hour >= 5) & (df_fix["Tgl/Waktu"].dt.hour <= 9)]
         id_to_nama = dict(zip(df_fix["ID"], df_fix["Nama"]))
 
         # Rentang tanggal kerja (exclude Minggu)
         if not df_fix["Tgl/Waktu"].empty:
             tanggal_awal = df_fix["Tgl/Waktu"].dt.date.min()
             tanggal_akhir = df_fix["Tgl/Waktu"].dt.date.max()
-            semua_tanggal = [tgl for tgl in pd.date_range(tanggal_awal, tanggal_akhir).date if pd.Timestamp(tgl).weekday() !=6]
+            semua_tanggal = [tgl for tgl in pd.date_range(tanggal_awal, tanggal_akhir).date
+                             if pd.Timestamp(tgl).weekday() != 6]
         else:
             semua_tanggal = []
 
@@ -111,10 +121,12 @@ def index():
         rekap_telat = []
         for id_karyawan in semua_id_unik:
             nama_karyawan = id_to_nama.get(id_karyawan, "Unknown")
-            data_id = df_pagi[df_pagi["ID"]==id_karyawan]
+            data_id = df_pagi[df_pagi["ID"] == id_karyawan]
             telat_id = data_id[data_id["Tgl/Waktu"].dt.time > jam_telat]
             for _, row in telat_id.iterrows():
-                rekap_telat.append({"ID": id_karyawan, "Nama": nama_karyawan, "Tgl/Waktu Telat": row["Tgl/Waktu"]})
+                rekap_telat.append({"ID": id_karyawan,
+                                    "Nama": nama_karyawan,
+                                    "Tgl/Waktu Telat": row["Tgl/Waktu"]})
         df_telat = pd.DataFrame(rekap_telat)
 
         # Rekap tidak hadir & jumlah absen
@@ -122,13 +134,17 @@ def index():
         jumlah_absen_total = []
         for id_karyawan in semua_id_unik:
             nama_karyawan = id_to_nama.get(id_karyawan, "Unknown")
-            data_id = df_fix[df_fix["ID"]==id_karyawan]
+            data_id = df_fix[df_fix["ID"] == id_karyawan]
             hadir_tanggal = set(data_id["Tgl/Waktu"].dt.date) if not data_id.empty else set()
             tidak_hadir_tanggal = [tgl for tgl in semua_tanggal if tgl not in hadir_tanggal]
             for tgl in tidak_hadir_tanggal:
-                rekap_tidak_hadir.append({"ID": id_karyawan, "Nama": nama_karyawan, "Tanggal Tidak Hadir": tgl})
+                rekap_tidak_hadir.append({"ID": id_karyawan,
+                                          "Nama": nama_karyawan,
+                                          "Tanggal Tidak Hadir": tgl})
             hadir_per_tanggal = len([tgl for tgl in semua_tanggal if tgl in hadir_tanggal])
-            jumlah_absen_total.append({"ID": id_karyawan, "Nama": nama_karyawan, "Jumlah Absen Total": hadir_per_tanggal})
+            jumlah_absen_total.append({"ID": id_karyawan,
+                                       "Nama": nama_karyawan,
+                                       "Jumlah Absen Total": hadir_per_tanggal})
         df_tidak_hadir = pd.DataFrame(rekap_tidak_hadir)
         df_jumlah_absen = pd.DataFrame(jumlah_absen_total)
 
@@ -146,36 +162,37 @@ def index():
             if "Jumlah Tidak Hadir" not in df_jumlah_absen.columns:
                 df_jumlah_absen["Jumlah Tidak Hadir"] = 0
 
-        df_jumlah_absen[["Jumlah Telat","Jumlah Tidak Hadir"]] = df_jumlah_absen[["Jumlah Telat","Jumlah Tidak Hadir"]].fillna(0).astype(int)
+        df_jumlah_absen[["Jumlah Telat", "Jumlah Tidak Hadir"]] = df_jumlah_absen[
+            ["Jumlah Telat", "Jumlah Tidak Hadir"]].fillna(0).astype(int)
 
         # Statistik
         jumlah_karyawan_telat = len(set(df_telat["ID"].unique())) if not df_telat.empty else 0
         jumlah_karyawan_tidak_hadir = len(set(df_tidak_hadir["ID"].unique())) if not df_tidak_hadir.empty else 0
 
         # Filter tidak hadir >3 hari
-        df_tidak_hadir_lebih3 = df_jumlah_absen[df_jumlah_absen["Jumlah Tidak Hadir"]>3].copy()
+        df_tidak_hadir_lebih3 = df_jumlah_absen[df_jumlah_absen["Jumlah Tidak Hadir"] > 3].copy()
 
-        # Buat file Excel rekap
+        # === Buat file Excel rekap (pakai highlight) ===
         hasil_rekap_filename = f"hasil_rekap_{uploaded_filename}"
         hasil_rekap_path = os.path.join(UPLOAD_FOLDER, hasil_rekap_filename)
-        with pd.ExcelWriter(hasil_rekap_path) as writer:
+        with pd.ExcelWriter(hasil_rekap_path, engine="openpyxl") as writer:
             if not df_telat.empty:
-                df_telat.to_excel(writer, sheet_name="Karyawan Telat", index=False)
+                df_telat.style.apply(highlight_bebas, axis=1).to_excel(writer, sheet_name="Karyawan Telat", index=False)
             if not df_tidak_hadir.empty:
-                df_tidak_hadir.to_excel(writer, sheet_name="Karyawan Tidak Hadir", index=False)
-            df_jumlah_absen.to_excel(writer, sheet_name="Jumlah Kehadiran", index=False)
+                df_tidak_hadir.style.apply(highlight_bebas, axis=1).to_excel(writer, sheet_name="Karyawan Tidak Hadir", index=False)
+            df_jumlah_absen.style.apply(highlight_bebas, axis=1).to_excel(writer, sheet_name="Jumlah Kehadiran", index=False)
             if not df_tidak_hadir_lebih3.empty:
-                df_tidak_hadir_lebih3.to_excel(writer, sheet_name=">3 Hari Tidak Hadir", index=False)
+                df_tidak_hadir_lebih3.style.apply(highlight_bebas, axis=1).to_excel(writer, sheet_name=">3 Hari Tidak Hadir", index=False)
 
-        # === Surat Panggilan Menggunakan Template Word + Hari Nama ===
-        hari_list = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"]
+        # === Surat Panggilan ===
+        hari_list = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
         for _, row in df_tidak_hadir_lebih3.iterrows():
             spg_filename = f"surat_panggilan_{row['ID']}_{uploaded_filename.rsplit('.',1)[0]}.docx"
             spg_path = os.path.join(UPLOAD_FOLDER, spg_filename)
             template_path = os.path.join("templates", "template_surat_panggilan.docx")
             doc = DocxTemplate(template_path)
 
-            df_absen_id = df_tidak_hadir[df_tidak_hadir["ID"]==row['ID']]
+            df_absen_id = df_tidak_hadir[df_tidak_hadir["ID"] == row['ID']]
             if not df_absen_id.empty:
                 semua_tgl = df_absen_id["Tanggal Tidak Hadir"].apply(lambda x: x.strftime("%d-%m-%Y")).tolist()
                 tanggal_terakhir = ", ".join(semua_tgl)
@@ -204,10 +221,30 @@ def index():
                 "Surat Panggilan": spg_filename
             })
 
-        # Konversi ke HTML untuk web
-        df_telat_html = df_telat.to_html(classes="table table-striped", index=False) if not df_telat.empty else "<p class='text-center'>Tidak ada data karyawan telat</p>"
-        df_tidak_hadir_html = df_tidak_hadir.to_html(classes="table table-striped", index=False) if not df_tidak_hadir.empty else "<p class='text-center'>Tidak ada data karyawan tidak hadir</p>"
-        df_jumlah_absen_html = df_jumlah_absen.to_html(classes="table table-striped", index=False)
+        # === Konversi ke HTML (highlight hijau + hide index) ===
+        if not df_telat.empty:
+            df_telat_html = (
+                df_telat.style.apply(highlight_bebas, axis=1)
+                .hide(axis="index")
+                .to_html(classes="table table-striped")
+            )
+        else:
+            df_telat_html = "<p class='text-center'>Tidak ada data karyawan telat</p>"
+
+        if not df_tidak_hadir.empty:
+            df_tidak_hadir_html = (
+                df_tidak_hadir.style.apply(highlight_bebas, axis=1)
+                .hide(axis="index")
+                .to_html(classes="table table-striped")
+            )
+        else:
+            df_tidak_hadir_html = "<p class='text-center'>Tidak ada data karyawan tidak hadir</p>"
+
+        df_jumlah_absen_html = (
+            df_jumlah_absen.style.apply(highlight_bebas, axis=1)
+            .hide(axis="index")
+            .to_html(classes="table table-striped")
+        )
 
     return render_template(
         "index.html",
@@ -233,4 +270,3 @@ def download(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
