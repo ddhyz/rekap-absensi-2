@@ -1,5 +1,5 @@
 # ===============================
-# app.py (Index di dalam folder templates)
+# app.py (Index di dalam folder templates) - versi sheet 1 & 2
 # ===============================
 from flask import Flask, render_template, request, send_file
 import pandas as pd
@@ -63,17 +63,24 @@ def index():
         file.save(file_path)
         download_file = uploaded_filename
 
-        # === PROSES EXCEL ===
-        df = pd.read_excel(file_path)
-        max_cols = len(df.columns)
-        column_mapping = {}
-        column_names = ['Perusahaan', 'Nama', 'ID', 'Tgl/Waktu', 'Mesin_ID', 'Kolom6', 'Status', 'Kolom8']
-        for i in range(min(max_cols, len(column_names))):
-            column_mapping[column_names[i]] = df.iloc[:, i]
-        df_fix = pd.DataFrame(column_mapping)
+        # === PROSES EXCEL: baca sheet 1 & 2 ===
+        all_sheets = pd.read_excel(file_path, sheet_name=None)  # dict {nama_sheet: DataFrame}
+        df_list = []
+        for sheet_name, df_sheet in all_sheets.items():
+            # Ambil kolom sesuai format
+            max_cols = len(df_sheet.columns)
+            column_mapping = {}
+            column_names = ['Perusahaan', 'Nama', 'ID', 'Tgl/Waktu', 'Mesin_ID', 'Kolom6', 'Status', 'Kolom8']
+            for i in range(min(max_cols, len(column_names))):
+                column_mapping[column_names[i]] = df_sheet.iloc[:, i]
+            df_fix_sheet = pd.DataFrame(column_mapping)
+            df_list.append(df_fix_sheet)
+
+        # Gabung semua sheet menjadi satu DataFrame
+        df_fix = pd.concat(df_list, ignore_index=True)
 
         # ID unik
-        semua_id_dari_file = [clean_id(idv) for idv in df.iloc[:,2] if clean_id(idv) != ""]
+        semua_id_dari_file = [clean_id(idv) for idv in df_fix["ID"] if clean_id(idv) != ""]
         semua_id_unik = sort_nicely(list(set(semua_id_dari_file)))
         jumlah_total_karyawan = len(semua_id_unik)
 
@@ -226,3 +233,4 @@ def download(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
