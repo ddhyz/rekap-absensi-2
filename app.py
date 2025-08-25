@@ -170,7 +170,7 @@ def index():
         jumlah_karyawan_tidak_hadir = len(set(df_tidak_hadir["ID"].unique())) if not df_tidak_hadir.empty else 0
 
         # Filter tidak hadir >3 hari
-        df_tidak_hadir_lebih3 = df_jumlah_absen[df_jumlah_absen["Jumlah Tidak Hadir"] > 3].copy()
+        df_tidak_hadir_lebih3 = df_jumlah_absen[df_jumlah_absen["Jumlah Tidak Hadir"] >= 3].copy()
 
         # === Buat file Excel rekap (pakai highlight) ===
         hasil_rekap_filename = f"hasil_rekap_{uploaded_filename}"
@@ -270,3 +270,4 @@ def download(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
